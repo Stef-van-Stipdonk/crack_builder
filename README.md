@@ -1,3 +1,6 @@
+Current feature --> Scan folder structure
+
+
 ## Goal - <End Date 2024-01-18>
 Create a basic build system in C to better understand how they work.
 The idea is to create the build system in C, such that no other dependencies are needed.
