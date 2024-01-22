@@ -27,3 +27,4 @@ Also I just find the idea of understanding build systems better interesting. <3
 
 ### Not part of MVP
 - [ ] Add a way to handle libraries
+- [ ] Hot reloading, you save a file and the program auto rebuilds
