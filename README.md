@@ -19,6 +19,7 @@ Also I just find the idea of understanding build systems better interesting. <3
 
 
 ## Goals
+- [ ] Get all files from directory + sub-directories
 - [ ] Add folder structure to the dependency graph
 - [ ] Add files to the dependency graph
 - [ ] Add dependencies between files to the graph

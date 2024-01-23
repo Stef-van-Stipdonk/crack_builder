@@ -88,7 +88,7 @@ void print_file_tree(char *basePath, const int root)
     {
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-            for (i=0; i<root; i++) 
+            for (i = 0; i < root; i++) 
             {
                 if (i%2 == 0 || i == 0)
                     printf("%c", '|');
@@ -109,6 +109,34 @@ void print_file_tree(char *basePath, const int root)
     closedir(dir);
 }
 
+void get_file_tree(char *basePath, char *ignore)
+{
+    int i;
+    char path[1000];
+    struct dirent *dp;
+    DIR *dir = opendir(basePath);
+
+    if (!dir)
+        return;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if(strcmp(dp->d_name, ignore) == 0){
+            continue;
+        }
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+            printf("%s\n", path);
+            strcpy(path, basePath);
+            strcat(path, "/");
+            strcat(path, dp->d_name);
+            get_file_tree(path, ignore);
+        }
+    }
+
+    closedir(dir);
+}
+
 int main(void) {
     Command cmd;
     cmd.str = NULL;
@@ -119,8 +147,8 @@ int main(void) {
     add_file(&cmd, "builder.c");
     add_file(&cmd, "test.c");
 
+    get_file_tree(".", ".git");
 //    add_directory(&cmd, "./");
-    print_file_tree(".", 0);
     // system(cmd.str);
 
     free(cmd.str);
