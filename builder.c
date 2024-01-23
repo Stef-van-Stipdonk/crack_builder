@@ -104,8 +104,13 @@ void add_directory_impl(Command *cmd, char *basePath, char *ignore_list[], size_
     bool is_ignored = false;
     while ((dp = readdir(dir)) != NULL)
     {
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; i < size - 1; ++i) {
+            if(ignore_list[i] == NULL) {
+                break;
+            }
+
             if(strcmp(dp->d_name, ignore_list[i]) == 0){
+                printf("%s%s%s\n", "Found ", ignore_list[i], " ignoring.");
                 is_ignored = true;
                 break;
             }  
@@ -147,13 +152,18 @@ void add_directory(Command *cmd, char *basePath) {
         exit(EXIT_FAILURE);
     char *line;
     size_t len = 0;
+    size_t found_ignores = 0;
     ssize_t read;
     while((read = getline(&line, &len, fp)) != -1){
-        ignore_list[len] = (char *)malloc(strlen(line) + 1);
-        strcpy(ignore_list[len], line);
+        if (line[read - 1] == '\n') {
+            line[read - 1] = '\0';
+        }
+        ignore_list[found_ignores] = (char *)malloc(strlen(line));
+        strcpy(ignore_list[found_ignores], line);
+        ++found_ignores;
     }
-    
-    free(fp);
+    fclose(fp);
+    free(line);
 }
 
 int main(void) {
@@ -163,13 +173,10 @@ int main(void) {
     add_flag(&cmd, 1, "-g");
     add_flag(&cmd, 2, "-o", "test");
     
-    // add_file(&cmd, "builder.c");
-    // add_file(&cmd, "test.c");
-    
-    add_directory(&cmd, "./test_applications/test01");
+    add_directory(&cmd, ".");
     printf("%s", cmd.str);
 
-    // system(cmd.str);
+    system(cmd.str);
     free(cmd.str);
     
     return 0;
