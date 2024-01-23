@@ -111,22 +111,21 @@ void print_file_tree(char *basePath, const int root)
 
 void get_file_tree(char *basePath, char *ignore)
 {
-    int i;
     char path[1000];
     struct dirent *dp;
     DIR *dir = opendir(basePath);
 
-    if (!dir)
-        return;
-
+    if (!dir){
+        printf("%s\n", basePath);
+    }
     while ((dp = readdir(dir)) != NULL)
     {
         if(strcmp(dp->d_name, ignore) == 0){
             continue;
         }
+
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-            printf("%s\n", path);
             strcpy(path, basePath);
             strcat(path, "/");
             strcat(path, dp->d_name);
