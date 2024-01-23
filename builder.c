@@ -11,6 +11,7 @@
 typedef struct {
     char *str;
 } Command;
+void get_config_file(char *path, char* ignore_list[], size_t size);
 
 int append(char **str, const char *new_content) {
     if (*str == NULL) {
@@ -45,33 +46,6 @@ int add_flag(Command *cmd, int count, ...) {
 
 int add_file(Command *cmd, const char *file_path) {
     return append(&(cmd->str), file_path);
-}
-
-int add_directory(Command *cmd, char *directory_path) {
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(directory_path);
-    if(d){
-        while((dir = readdir(d)) != NULL) {
-            struct stat path_stat;
-            printf("%s", strcat(dir->d_name, "\n"));
-            if(stat(dir->d_name, &path_stat) == 0 && S_ISDIR(path_stat.st_mode)){
-                char *new_path = (char *)malloc(strlen(directory_path) + strlen(dir->d_name) + 1);
-                strcpy(new_path, directory_path);
-                strcat(new_path, dir->d_name);
-                printf("%s", strcat(new_path, "\n"));
-                add_directory(cmd, new_path);
-                free(new_path);
-            }
-            else {
-                append(&(cmd->str), dir->d_name);
-            }
-        }
-        closedir(d);
-        free(dir);
-    }
-
-    return 1;
 }
 
 void print_file_tree(char *basePath, const int root)
@@ -109,31 +83,77 @@ void print_file_tree(char *basePath, const int root)
     closedir(dir);
 }
 
-void get_file_tree(char *basePath, char *ignore)
-{
+int endsWith(char *str, char *end){
+    size_t slen = strlen(str);
+    size_t elen = strlen(end);
+
+    if(slen < elen)
+        return 0;
+
+    return (strcmp(&(str[slen-elen]), end) == 0);
+}
+
+void add_directory_impl(Command *cmd, char *basePath, char *ignore_list[], size_t size){
     char path[1000];
     struct dirent *dp;
     DIR *dir = opendir(basePath);
 
-    if (!dir){
-        printf("%s\n", basePath);
-    }
+    if (!dir)
+        return;
+
+    bool is_ignored = false;
     while ((dp = readdir(dir)) != NULL)
     {
-        if(strcmp(dp->d_name, ignore) == 0){
-            continue;
+        for (int i = 0; i < size; ++i) {
+            if(strcmp(dp->d_name, ignore_list[i]) == 0){
+                is_ignored = true;
+                break;
+            }  
         }
 
+        if(is_ignored){
+            is_ignored = false;
+            continue;
+        }
+        
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
             strcpy(path, basePath);
             strcat(path, "/");
             strcat(path, dp->d_name);
-            get_file_tree(path, ignore);
+            add_directory_impl(cmd, path, ignore_list, size);
         }
+
+        if(endsWith(dp->d_name, ".c")){
+            append(&(cmd->str), path);
+        }
+
     }
 
     closedir(dir);
+}
+
+void add_directory(Command *cmd, char *basePath) {
+    size_t size = 1000;
+    char *ignore_list[size];
+    get_config_file("./config.conf", ignore_list, size);
+    add_directory_impl(cmd, basePath, ignore_list, size);
+}
+
+ void get_config_file(char *path, char *ignore_list[], size_t size){
+    FILE * fp;
+    fp = fopen(path, "r");
+    if(fp == NULL)
+        exit(EXIT_FAILURE);
+    char *line;
+    size_t len = 0;
+    ssize_t read;
+    while((read = getline(&line, &len, fp)) != -1){
+        ignore_list[len] = (char *)malloc(strlen(line) + 1);
+        strcpy(ignore_list[len], line);
+    }
+    
+    free(fp);
 }
 
 int main(void) {
@@ -143,14 +163,14 @@ int main(void) {
     add_flag(&cmd, 1, "-g");
     add_flag(&cmd, 2, "-o", "test");
     
-    add_file(&cmd, "builder.c");
-    add_file(&cmd, "test.c");
+    // add_file(&cmd, "builder.c");
+    // add_file(&cmd, "test.c");
+    
+    add_directory(&cmd, "./test_applications/test01");
+    printf("%s", cmd.str);
 
-    get_file_tree(".", ".git");
-//    add_directory(&cmd, "./");
     // system(cmd.str);
-
     free(cmd.str);
-
+    
     return 0;
 }
