@@ -1,4 +1,4 @@
-Current feature --> Scan folder structure
+Current feature --> Create dependency graph
 
 
 ## Goal 
@@ -19,12 +19,19 @@ Also I just find the idea of understanding build systems better interesting. <3
 
 
 ## Goals
-- [ ] Get all files from directory + sub-directories
+- [x] Get all files from root directory + sub-directories
+- [x] Add ignore file to be able to ignore directories/files
+- [ ] Set custom compiler
+- [ ] Set custom path/file-name for ignore file
+- [x] Add flag command
+- [x] Get all files from specified directory
+- [x] Add specific files
+- [ ] Base dependency graph
 - [ ] Add folder structure to the dependency graph
 - [ ] Add files to the dependency graph
 - [ ] Add dependencies between files to the graph
 - [ ] Sort the files in the needed order 
-- [ ] Pass the files to gcc
+- [x] Pass the files to gcc (gcc is the only compiler option for now)
 
 ### Not part of MVP
 - [ ] Add a way to handle libraries

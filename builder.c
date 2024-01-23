@@ -141,7 +141,7 @@ void add_directory_impl(Command *cmd, char *basePath, char *ignore_list[], size_
 void add_directory(Command *cmd, char *basePath) {
     size_t size = 1000;
     char *ignore_list[size];
-    get_config_file("./config.conf", ignore_list, size);
+    get_config_file("./ignore.conf", ignore_list, size);
     add_directory_impl(cmd, basePath, ignore_list, size);
 }
 
