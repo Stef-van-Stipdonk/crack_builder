@@ -7,45 +7,27 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include "base.h"
 
 typedef struct {
-    char *str;
+    List(char*) command_list;
 } Command;
+
 void get_config_file(char *path, char* ignore_list[], size_t size);
 
-int append(char **str, const char *new_content) {
-    if (*str == NULL) {
-        *str = (char *)malloc(strlen(new_content) + 1);
-    } else {
-        *str = (char *)realloc(*str, strlen(*str) + strlen(new_content) + 1);
-    }
-
-    if (*str == NULL) {
-        perror("Memory allocation failed");
-        exit(EXIT_FAILURE);
-        return -1;
-    }
-    strcat(*str, " ");
-    strcat(*str, new_content);
-
-    return 1;
-}
-
-int add_flag(Command *cmd, int count, ...) {
+void add_flag(Command *cmd, int count, ...) {
     va_list args;
     va_start(args, count);
 
     for(int i = 0; i < count; i++) {
-        append(&(cmd->str), va_arg(args, char *));
+        listAppend(cmd->command_list, va_arg(args, char *));
     }
 
     va_end(args);
-
-    return 1;
 }
 
-int add_file(Command *cmd, const char *file_path) {
-    return append(&(cmd->str), file_path);
+void add_file(Command *cmd, char *file_path) {
+    listAppend(cmd->command_list, file_path);
 }
 
 void print_file_tree(char *basePath, const int root)
@@ -130,7 +112,7 @@ void add_directory_impl(Command *cmd, char *basePath, char *ignore_list[], size_
         }
 
         if(endsWith(dp->d_name, ".c")){
-            append(&(cmd->str), path);
+            listAppend(cmd->command_list, path);
         }
 
     }
@@ -145,7 +127,7 @@ void add_directory(Command *cmd, char *basePath) {
     add_directory_impl(cmd, basePath, ignore_list, size);
 }
 
- void get_config_file(char *path, char *ignore_list[], size_t size){
+void get_config_file(char *path, char *ignore_list[], size_t size){
     FILE * fp;
     fp = fopen(path, "r");
     if(fp == NULL)
@@ -166,18 +148,36 @@ void add_directory(Command *cmd, char *basePath) {
     free(line);
 }
 
+void build(Command *cmd) {
+    char *command_string = NULL;
+
+    for(int i = 0; i < listUsed(cmd->command_list); ++i){
+        if (command_string == NULL) {
+            command_string = (char *)malloc(strlen(listGet(cmd->command_list, i)) + 1);
+        } else {
+            command_string = (char *)realloc(command_string, strlen(command_string) + strlen(listGet(cmd->command_list, i)) + 1);
+        }
+
+        strcat(command_string, " ");
+        strcat(command_string, listGet(cmd->command_list, i));
+    }
+
+    printf("%s", command_string);
+}
+
 int main(void) {
     Command cmd;
-    cmd.str = NULL;
+    initList(cmd.command_list);
+
     add_flag(&cmd, 1, "gcc");
     add_flag(&cmd, 1, "-g");
     add_flag(&cmd, 2, "-o", "test");
     
     add_directory(&cmd, ".");
-    printf("%s", cmd.str);
 
-    system(cmd.str);
-    free(cmd.str);
+    build(&cmd);    
+
+    freeList(cmd.command_list);
     
     return 0;
 }
